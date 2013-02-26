@@ -1,1 +1,9 @@
 Simple IRC Tailbot written for a friend.
+
+Modified by sully to suit my particular purposes:
+ - takes the prefix of log file names and switches files when a new
+   file with that prefix is created
+ - Reads the file in as utf-16 and emits it as utf-8
+ - Filters out some lines and removes timestamps based on a hardcoded
+   pattern
+I may generalize some of this more if I care.
