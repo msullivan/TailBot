@@ -1,15 +1,17 @@
 from twisted.internet.task import LoopingCall
 from os import stat, fstat, path, listdir
 import codecs
+import re
 
 class FollowTail:
     fileObj = None
 
-    def __init__(self, directory, base, *a, **kw):
+    def __init__(self, directory, base, seperator, encoding, regex, *a, **kw):
         self.callback = ChainCallback()
 
-        self.encoding = 'utf-16'
-        self.special_delim = ' ] '
+        self.encoding = encoding
+        self.special_delim = seperator
+        self.regex = re.compile(regex % base)
 
         self.directory = directory
         self.base = base
@@ -32,7 +34,7 @@ class FollowTail:
         return path.join(self.directory, self.filename)
 
     def find_file(self):
-        files = [f for f in listdir(self.directory) if f.startswith(self.base + "_")]
+        files = [f for f in listdir(self.directory) if re.match(self.regex, f)]
         if not files: return None
         return max(files)
 
@@ -41,9 +43,10 @@ class FollowTail:
         if not obj: return
         obj.seek(obj.tell())
         for line in obj:
+            if self.special_delim:
+                if self.special_delim not in line: continue
+                line = line.split(self.special_delim, 1)[1]
             line = line.strip()
-            if self.special_delim not in line: continue
-            line = line.split(self.special_delim, 1)[1]
 
             line = line.encode('utf-8')
             callback(line, self.base, *a, **kw)

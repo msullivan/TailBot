@@ -59,6 +59,9 @@ def main():
     try:
         directory = config.get('files', 'directory')
         files = [f.strip() for f in config.get('files', 'filenames').split(';')]
+        seperator = config.get('format', 'seperator')
+        encoding = config.get('format', 'encoding')
+        regex = config.get('format', 'filename_regex')
     except Exception as e:
         print "Invalid Configuration Directives! [%s]" % e
         sys.exit()
@@ -66,7 +69,9 @@ def main():
     print "[TailBot] starting with config file [%s]" % configFile
     print "Tailing: %s" % (', '.join(files))
 
-    followers = [FollowTail.FollowTail(directory, file) for file in files]
+    followers = [FollowTail.FollowTail(directory, file,
+                                       seperator, encoding, regex)
+                 for file in files]
 
     if config.has_section('ircd'):
         setup_irc(config, followers)
