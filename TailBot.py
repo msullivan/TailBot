@@ -45,11 +45,5 @@ class TailBotFactory(ReconnectingClientFactory):
         self.channels = channels
         self.nickname = nickname
 
-    def addTailFollower(self, directory, filename):
-        callback = FollowTail.ChainCallback()
-        tail = FollowTail.FollowTail(directory, filename, callback)
-        self.tails.append((tail, callback))
-        tail.start()
-
-
-
+    def addTailFollower(self, tail):
+        self.tails.append((tail, tail.callback))

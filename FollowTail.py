@@ -5,7 +5,9 @@ import codecs
 class FollowTail:
     fileObj = None
 
-    def __init__(self, directory, base, callback, *a, **kw):
+    def __init__(self, directory, base, *a, **kw):
+        self.callback = ChainCallback()
+
         self.encoding = 'utf-16'
         self.special_delim = ' ] '
 
@@ -15,8 +17,9 @@ class FollowTail:
         self.fileObj = None
         print "Found file %s for %s" % (self.filename, base)
         self.lc = LoopingCall(self.check)
-        self.callback = callback
         self.a, self.kw = a, kw
+
+        self.start()
 
     def start(self, checkFreq = 0.5):
         if self.filename:
