@@ -28,7 +28,7 @@ class FollowTail:
         return path.join(self.directory, self.filename)
 
     def find_file(self):
-        return max(f for f in listdir(self.directory) if self.base in f)
+        return max(f for f in listdir(self.directory) if f.startswith(self.base + "_"))
 
     def check(self):
         obj, callback, a, kw = self.fileObj, self.callback, self.a, self.kw
