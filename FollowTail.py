@@ -12,26 +12,30 @@ class FollowTail:
         self.directory = directory
         self.base = base
         self.filename = self.find_file()
+        self.fileObj = None
         print "Found file %s for %s" % (self.filename, base)
-        assert path.exists(self.file_path())
         self.lc = LoopingCall(self.check)
         self.callback = callback
         self.a, self.kw = a, kw
 
     def start(self, checkFreq = 0.5):
-        self.fileObj = codecs.open(self.file_path(), 'rb',
-                                   encoding=self.encoding)
-        self.fileObj.seek(0, 2)
+        if self.filename:
+            self.fileObj = codecs.open(self.file_path(), 'rb',
+                                       encoding=self.encoding)
+            self.fileObj.seek(0, 2)
         self.lc.start(checkFreq)
 
     def file_path(self):
         return path.join(self.directory, self.filename)
 
     def find_file(self):
-        return max(f for f in listdir(self.directory) if f.startswith(self.base + "_"))
+        files = [f for f in listdir(self.directory) if f.startswith(self.base + "_")]
+        if not files: return None
+        return max(files)
 
-    def check(self):
+    def process(self):
         obj, callback, a, kw = self.fileObj, self.callback, self.a, self.kw
+        if not obj: return
         obj.seek(obj.tell())
         for line in obj:
             line = line.strip()
@@ -41,11 +45,14 @@ class FollowTail:
             line = line.encode('utf-8')
             callback(line, self.base, *a, **kw)
 
+    def check(self):
+        self.process()
+
         newfile = self.find_file()
         if newfile != self.filename:
             self.filename = newfile
             print "Switching to %s for %s" % (newfile, self.base)
-            self.fileObj.close()
+            if self.fileObj: self.fileObj.close()
             self.fileObj = codecs.open(self.file_path(), 'rb',
                                        encoding=self.encoding)
 
