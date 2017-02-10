@@ -1,5 +1,5 @@
 import ConfigParser, os.path, sys, os
-import TailBot, FollowTail
+import TailBot, SlackTailBot, FollowTail
 from twisted.internet import reactor
 from twisted.python import log
 log.startLogging(sys.stdout)
@@ -28,6 +28,21 @@ def setup_irc(config, followers):
     else:
         reactor.connectTCP(server, port, factory)
 
+def setup_slack(config, followers):
+    try:
+        url = config.get('slack', 'webhook')
+        nickname = config.get('slack', 'nickname')
+        channel = config.get('slack', 'channel')
+    except Exception as e:
+        print "Invalid Configuration Directives! [%s]" % e
+        sys.exit()
+
+    print "Sending to slack webhook URL: %s as %s" % (url, nickname)
+
+    bot = SlackTailBot.SlackTailBot(url, nickname, channel)
+    for follower in followers:
+        bot.addTailFollower(follower)
+
 def main():
     try:
         configFile = sys.argv[1]
@@ -55,6 +70,8 @@ def main():
 
     if config.has_section('ircd'):
         setup_irc(config, followers)
+    if config.has_section('slack'):
+        setup_slack(config, followers)
 
     reactor.run()
 
